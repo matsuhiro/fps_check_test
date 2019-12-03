@@ -1,6 +1,24 @@
 import 'package:flutter/material.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  final binding = WidgetsFlutterBinding.ensureInitialized()
+    ..attachRootWidget(MyApp());
+  binding.scheduleWarmUpFrame();
+
+  setOnEndFrame(binding, binding.currentSystemFrameTimeStamp);
+}
+
+void setOnEndFrame(WidgetsBinding binding, Duration lastSystemFrameTimeStamp) {
+  void Function(void) endOfFrameCallback = (_) {
+    final currentSystemFrameTimeStamp = binding.currentSystemFrameTimeStamp;
+    final diff = currentSystemFrameTimeStamp - lastSystemFrameTimeStamp;
+    if (diff > Duration(milliseconds: 16, microseconds: 666)) {
+      print('It takes more than 60fps, duration=$diff');
+    }
+    setOnEndFrame(binding, currentSystemFrameTimeStamp);
+  };
+  binding.endOfFrame.then(endOfFrameCallback);
+}
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
